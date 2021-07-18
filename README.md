@@ -155,12 +155,13 @@ $ sudo systemctl enable haproxy
 
 After all nodes are successfully rebooted, you can verify status of HA configuration.
 
-***HA Proxy Stats UI***
+**HA Proxy Stats UI**
 
 Check status of PostgreSQL and Redis services by accessing HAProxy Stats UI http://\<Virtual IP\>:7000
+
 ![](image/Statistics_Report_for_HAProxy.png)
 
-***Patroni State***
+**Patroni State**
 
 Check the state of the Patroni cluster
 ```sh
@@ -173,7 +174,7 @@ $ patronictl -c /etc/patroni/config.yml list
 | node3  | 192.168.18.23:5433 | Replica | running |  2 |         0 |
 +--------+--------------------+---------+---------+----+-----------+
 ```
-
+  
 Manually failover to a PostgreSQL replica
 ```sh
 $ patronictl -c /etc/patroni/config.yml failover
@@ -190,7 +191,7 @@ Are you sure you want to failover cluster batman, demoting current master node1?
 2021-07-18 20:37:36.64034 Successfully failed over to "node2"
 ```
 
-***Redis State***
+**Redis State**
 
 Login to Sentienl (not Redis)
 ```sh
@@ -231,13 +232,15 @@ OK
 
 ### Check etcd status and log on each node
 
-***Configuration File***
+**Configuration File**
+
 There is no specific configuration for etcd. It is start using command line parameters in /etc/systemd/system/etcd.service
 
-***Log File***
+**Log File**
+
 /var/log/messages (CentOS) or /var/log/syslog (Ubuntu)
 
-***Check service status***
+**Check service status**
 ```sh
 $ sudo systemctl status etcd
 ● etcd.service - etcd service
@@ -255,15 +258,17 @@ $ sudo systemctl status etcd
 
 ### Check Patroni status and log on each node
 
-***Configuration File***
-/etc/patroni/config.yml
+**Configuration File**
+
+Patroni configuration file /etc/patroni/config.yml  
 PostgreSQL configuration and data are in /data/patroni
 
-***Log File***
-PostgreSQL log is in /var/log/postgresql/ directory
+**Log File**
+
+PostgreSQL log is in /var/log/postgresql/ directory  
 Patroni log is in /var/log/patroni/patroni.log
 
-***Check service status***
+**Check service status**
 ```sh
 $ sudo systemctl status patroni
 ● patroni.service - High availability PostgreSQL Cluster
@@ -296,20 +301,22 @@ Jul 18 23:36:01 ubuntu2 patroni[1184]: 192.168.18.22:5433 - accepting connection
 
 ### Check Redis status and log on each node
 
-***Configuration File***
-Ubuntu
-/etc/redis/redis.conf
+**Configuration File**
+
+Ubuntu  
+/etc/redis/redis.conf  
 /etc/redis/sentinel.conf
 
-CentOS
-/etc/redis.conf
+CentOS  
+/etc/redis.conf  
 /etc/redis-sentinel.conf
 
-***Log File***
-Redis log is in /var/log/redis/redis.log
+**Log File**
+
+Redis log is in /var/log/redis/redis.log  
 Sentinel log is in /var/log/redis/sentinel.log
 
-***Check Redis service status***
+**Check Redis service status**
 ```sh
 $ sudo systemctl status redis
 ● redis-server.service - Advanced key-value store
@@ -328,7 +335,7 @@ Jul 18 23:35:12 ubuntu2 systemd[1]: Starting Advanced key-value store...
 Jul 18 23:35:13 ubuntu2 systemd[1]: Started Advanced key-value store.
 ```
 
-Check Sentinel service status
+**Check Sentinel service status**
 ```sh
 $ sudo systemctl status redis-sentinel
 ● redis-sentinel.service - Advanced key-value store
@@ -349,14 +356,16 @@ Jul 18 23:35:13 ubuntu2 systemd[1]: Started Advanced key-value store.
 
 ### Check HAProxy status and log on each node
 
-***Configuration File***
-/etc/haproxy/haproxy.cfg
+**Configuration File**
+
+/etc/haproxy/haproxy.cfg  
 /etc/rsyslog.d/99-haproxy.conf
 
-***Log File***
+**Log File**
+
 /var/log/haproxy.log
 
-***Check service status***
+**Check service status**
 ```sh
 $ sudo systemctl status haproxy
 ● haproxy.service - HAProxy Load Balancer
@@ -377,13 +386,15 @@ Jul 18 23:35:15 ubuntu1 haproxy[856]: Proxy redis_master started.
 
 ### Check Keepalived status and log on each node
 
-***Configuration File***
+**Configuration File**
+
 /etc/keepalived/keepalived.conf
 
-***Log File***
+**Log File**
+
 /var/log/messages (CentOS) or /var/log/syslog (Ubuntu)
 
-***Check service status***
+**Check service status**
 ```sh
 $ sudo systemctl status keepalived
 [sudo] password for ladmin:
