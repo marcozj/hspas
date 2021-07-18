@@ -231,9 +231,13 @@ OK
 
 ### Check etcd status and log on each node
 
-etcd log is in /var/log/messages (CentOS) or /var/log/syslog (Ubuntu)
+***Configuration File***
+There is no specific configuration for etcd. It is start using command line parameters in /etc/systemd/system/etcd.service
 
-Check service status
+***Log File***
+/var/log/messages (CentOS) or /var/log/syslog (Ubuntu)
+
+***Check service status***
 ```sh
 $ sudo systemctl status etcd
 ● etcd.service - etcd service
@@ -251,10 +255,15 @@ $ sudo systemctl status etcd
 
 ### Check Patroni status and log on each node
 
+***Configuration File***
+/etc/patroni/config.yml
+PostgreSQL configuration and data are in /data/patroni
+
+***Log File***
 PostgreSQL log is in /var/log/postgresql/ directory
 Patroni log is in /var/log/patroni/patroni.log
 
-Check service status
+***Check service status***
 ```sh
 $ sudo systemctl status patroni
 ● patroni.service - High availability PostgreSQL Cluster
@@ -287,10 +296,20 @@ Jul 18 23:36:01 ubuntu2 patroni[1184]: 192.168.18.22:5433 - accepting connection
 
 ### Check Redis status and log on each node
 
+***Configuration File***
+Ubuntu
+/etc/redis/redis.conf
+/etc/redis/sentinel.conf
+
+CentOS
+/etc/redis.conf
+/etc/redis-sentinel.conf
+
+***Log File***
 Redis log is in /var/log/redis/redis.log
 Sentinel log is in /var/log/redis/sentinel.log
 
-Check Redis service status
+***Check Redis service status***
 ```sh
 $ sudo systemctl status redis
 ● redis-server.service - Advanced key-value store
@@ -330,9 +349,14 @@ Jul 18 23:35:13 ubuntu2 systemd[1]: Started Advanced key-value store.
 
 ### Check HAProxy status and log on each node
 
-HAProxy is in /var/log/haproxy.log
+***Configuration File***
+/etc/haproxy/haproxy.cfg
+/etc/rsyslog.d/99-haproxy.conf
 
-Check service status
+***Log File***
+/var/log/haproxy.log
+
+***Check service status***
 ```sh
 $ sudo systemctl status haproxy
 ● haproxy.service - HAProxy Load Balancer
@@ -353,9 +377,13 @@ Jul 18 23:35:15 ubuntu1 haproxy[856]: Proxy redis_master started.
 
 ### Check Keepalived status and log on each node
 
-HAProxy is in /var/log/messages (CentOS) or /var/log/syslog (Ubuntu)
+***Configuration File***
+/etc/keepalived/keepalived.conf
 
-Check service status
+***Log File***
+/var/log/messages (CentOS) or /var/log/syslog (Ubuntu)
+
+***Check service status***
 ```sh
 $ sudo systemctl status keepalived
 [sudo] password for ladmin:
