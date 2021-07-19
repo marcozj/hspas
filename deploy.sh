@@ -275,8 +275,8 @@ function create_postgres_sslcert()
             openssl req -new -nodes -text -out ${POSTGRES_CERT_DIR}/server.csr -keyout ${POSTGRES_CERT_DIR}/server.key -subj "/CN=${POSTGRES_CERT_NAME}" -config ${OPENSSL_CNF}
             chmod og-rwx ${POSTGRES_CERT_DIR}/server.key
             openssl x509 -req -in ${POSTGRES_CERT_DIR}/server.csr -text -days 1825 -CA ${CA_CERT_DIR}/root.crt -CAkey ${CA_CERT_DIR}/root.key -CAcreateserial -out ${POSTGRES_CERT_DIR}/server.crt -extfile ${OPENSSL_CNF} -extensions usr_cert
+            chown -R postgres:postgres ${POSTGRES_CERT_DIR}
         fi
-        chown -R postgres:postgres ${POSTGRES_CERT_DIR}
     fi
     return 0
 }
@@ -293,8 +293,8 @@ function create_redis_sslcert()
             openssl req -new -nodes -text -out ${REDIS_CERT_DIR}/server.csr -keyout ${REDIS_CERT_DIR}/server.key -subj "/CN=${REDIS_CERT_NAME}" -config ${OPENSSL_CNF}
             chmod og-rwx ${REDIS_CERT_DIR}/server.key
             openssl x509 -req -in ${REDIS_CERT_DIR}/server.csr -text -days 1825 -CA ${CA_CERT_DIR}/root.crt -CAkey ${CA_CERT_DIR}/root.key -CAcreateserial -out ${REDIS_CERT_DIR}/server.crt -extfile ${OPENSSL_CNF} -extensions usr_cert
+            chown -R redis:redis ${REDIS_CERT_DIR}
         fi
-        chown -R redis:redis ${REDIS_CERT_DIR}
     fi
     return 0
 }
@@ -756,7 +756,7 @@ function install_redis()
             SENTINEL_CONF="/etc/redis/sentinel.conf"
             # Use PPA repository maintained by Redis Development to install Redis 6
             add-apt-repository ppa:redislabs/redis -y
-            apt-get install redis redis-sentinel -y
+            apt install redis redis-sentinel -y
             r=$?
             if [ $r -ne 0 ];then
                 echo "Installation of Redis package unsuccessfully"
@@ -764,8 +764,8 @@ function install_redis()
             fi
             # Make sure network interface is up before starting Redis and Sentinel
             echo "Update Redis and Sentinel service files..."
-            /bin/sed -i 's/^After=network.target/After=network-online.target/g' /lib/systemd/system/redis.service
-            /bin/sed -i 's/^After=network.target/After=network-online.target/g' /lib/systemd/system/redis-sentinel.service
+            /bin/sed -i 's/^After=network.target/After=network-online.target/g' /usr/lib/systemd/system/redis-server.service
+            /bin/sed -i 's/^After=network.target/After=network-online.target/g' /usr/lib/systemd/system/redis-sentinel.service
 
             # Open Redis port and Sentinel port
             echo "Enable Redis firewall ports..."
@@ -912,7 +912,7 @@ END
             firewall-cmd --reload
             ;;
         ubuntu)
-            apt-get install haproxy -y
+            apt install haproxy -y
             if [ $r -ne 0 ];then
                 echo "Installation of haproxy package unsuccessfully"
                 return $r
@@ -1000,8 +1000,8 @@ END
             cp ${REDIS_CERT_DIR}/server.crt $HAPROXY_CERT_DIR
             cat ${REDIS_CERT_DIR}/server.key >> ${HAPROXY_CERT_DIR}/server.crt
             chmod og-rwx ${HAPROXY_CERT_DIR}/server.crt
+            chown -R haproxy:haproxy ${HAPROXY_CERT_DIR}
         fi
-        chown -R haproxy:haproxy ${HAPROXY_CERT_DIR}
     else
         cat >>/etc/haproxy/haproxy.cfg <<END
 frontend ft_redis
@@ -1028,7 +1028,7 @@ END
     # Enable HAProxy logging
     # https://www.digitalocean.com/community/tutorials/how-to-configure-haproxy-logging-with-rsyslog-on-centos-8-quickstart
     echo "Configuring HAProxy logging..."
-    if [ -d "/var/lib/haproxy/dev" ] 
+    if [ ! -d "/var/lib/haproxy/dev" ] 
     then
         mkdir /var/lib/haproxy/dev
     fi
@@ -1077,7 +1077,10 @@ function install_keepalived()
 
     # Create Keepalived configuration file
     echo "Creating Keepalived configuration file..."
-    cp -r /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf_bak
+    if [ -d "/etc/keepalived/keepalived.conf" ] 
+    then
+        cp -r /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf_bak
+    fi
     cat >/etc/keepalived/keepalived.conf <<END
 global_defs {
     router_id ${NODE_NAME}
