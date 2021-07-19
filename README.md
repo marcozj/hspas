@@ -82,9 +82,9 @@ If you want to turn on SSL for PostgreSQL and Redis using self-signed certificat
     OPENSSL_CNF="/etc/ssl/myssl.cnf" # Generated OpenSSL configuration file name for creating self-signed certificates. Used in generation of SSL certificates for Postgres and Redis
     ROOT_CERT_NAME="Self-Signed CA" # Common name of self-signed CA certificate
     POSTGRES_CERT_NAME="PostgreSQL Certificate" # Common name of PostgreSQL certificate
-    POSTGRES_CERT_ALTNAME="DNS:pgsql.demo.lab,DNS:*.demo.lab" # PostgreSQL certificate alternative name. Update it according to your domain and hostname
+    POSTGRES_CERT_ALTNAME="DNS:pgsql.demo.lab,DNS:*.demo.lab" # PostgreSQL certificate alternative name. Make sure DNS is resolved to VIP. Update it according to your domain and hostname
     REDIS_CERT_NAME="Redis Certificate" # Common name of Redis certificate
-    REDIS_CERT_ALTNAME="DNS:redis.demo.lab,DNS:*.demo.lab" # Redis certificate alternative name. Update it according to your domain and hostname
+    REDIS_CERT_ALTNAME="DNS:redis.demo.lab,DNS:*.demo.lab" # Redis certificate alternative name. Make sure DNS is resolved to VIP. Update it according to your domain and hostname
     CA_CERT_DIR="/etc/ssl/myca" # Directory where CA certificate and key are saved
     POSTGRES_CERT_DIR="/etc/ssl/pgsql" # Directory where PostgresQL certificate and key are saved
     REDIS_CERT_DIR="/etc/ssl/redis" # Directory where Redis certificate and key are saved
@@ -133,6 +133,8 @@ $ sudo tar xf /tmp/certs.tar
 ```
 
 Upload /etc/ssl/myca/server.crl to the URL defined CRL_URL variable.
+
+Add /etc/ssl/myca/root.crt into Trusted Root Certification Authorities store to Local Machine in Windows machine where application is run.
 
 ### 4. Reboot all 3 VMs
 
@@ -191,6 +193,37 @@ Are you sure you want to failover cluster batman, demoting current master node1?
 2021-07-18 20:37:36.64034 Successfully failed over to "node2"
 ```
 
+**PostgreSQL State**
+
+Connect to PostgreSQL via VIP
+```sh
+$ psql -h <VIP> -U admin postgres
+Password for user admin:
+psql (12.7 (Ubuntu 12.7-0ubuntu0.20.04.1))
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
+Type "help" for help.
+
+postgres=# select * from pg_available_extensions where name in ('plv8','postgres_fdw');
+     name     | default_version | installed_version |                      comment
+--------------+-----------------+-------------------+----------------------------------------------------
+ postgres_fdw | 1.0             |                   | foreign-data wrapper for remote PostgreSQL servers
+ plv8         | 2.3.15          |                   | PL/JavaScript (v8) trusted procedural language
+(2 rows)
+
+postgres=# \l
+                                 List of databases
+      Name       | Owner | Encoding |   Collate   |    Ctype    | Access privileges
+-----------------+-------+----------+-------------+-------------+-------------------
+ global          | admin | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ postgres        | admin | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ template0       | admin | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/admin         +
+                 |       |          |             |             | admin=CTc/admin
+ template1       | admin | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/admin         +
+                 |       |          |             |             | admin=CTc/admin
+ tenant_xpsc8300 | admin | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+(5 rows)
+```
+
 **Redis State**
 
 Login to Sentienl (not Redis)
@@ -226,6 +259,27 @@ Manually failover to a replica
 ```sh
 192.168.18.21:26378> sentinel failover redis-cluster
 OK
+```
+
+Getting a list of keys from Redis
+```sh
+$ redis-cli -h <VIP> --tls --cacert /etc/ssl/myca/root.crt --scan | head -10
+__ROW__Core.Access.AppPolicyRoleRules.Enabled_config_XPSC8300_%%_TableStorage_%%_Centrify21.4-214
+__ROW__Google Directory Service Users_querydef_centrify_%%_TableStorage_%%_Centrify21.4-214
+__ROW__Core.UI.MissingBuildFilesFail_config_centrify_%%_TableStorage_%%_Centrify21.4-214
+_%centrify%_#StatsPurgeJobRawDataPurgedThrough_%%_Config_%%_Centrify21.4-214
+__ROW__CPS.ResourceProfile.MaxTemporaryFileAge_config_centrify_%%_TableStorage_%%_Centrify21.4-214
+_%XPSC8300%_#7726b5a7ed40792a.B00.001d.2a32f88e060992d0_%%_Events_%%_Centrify21.4-214
+__ROW__AWSEC2_application_centrify_%%_TableStorage_%%_Centrify21.4-214
+_%XPSC8300%_#EntityCache|DirectoryServices|c2c7bcc6-9560-44e0-8dff-5be221cd37ee_%%_DirectorySvcs_%%_Centrify21.4-214
+__ROW__All Accounts PLV8_querydef_centrify_%%_TableStorage_%%_Centrify21.4-214
+_%centrify%_#Core.LibBless._lib_applist.js_%%_Config_%%_Centrify21.4-214
+```
+
+Getting the value of a key
+```sh
+$ redis-cli -h <VIP> --tls --cacert /etc/ssl/myca/root.crt get "__ROW__AWSEC2_application_centrify_%%_TableStorage_%%_Centrify21.4-214"
+"{\"$type\":\"Centrify.Cfw2.Data.DataEntity, Centrify.Cfw2.Data\",\"Description\":\"Amazon Elastic Compute Cloud (Amazon EC2) is a web service that provides resizable compute capacity in the cloud. It is designed to make web-scale cloud computing easier for developers.\",\"CatalogVisibility\":\"All\",\"DisplayName\":\"AWS EC2\",\"Reference\":\"CC-61504\",\"_TableName\":\"application\",\"_PartitionKey\":\"centrify\",\"_RowKey\":\"AWSEC2\",\"Brand\":null,\"NotSelfService\":true,\"Handler\":null,\"Category\":\"_I18N_AppCategory_Software_Development_and_Operations\",\"Icon\":\"/vfslow/lib/application/icons/AWSEC2.png\",\"Generic\":false,\"Intranet\":false,\"Name\":\"AWSEC2\",\"AppType\":\"Web\",\"ParentAppTemplateName\":\"AWSConsoleSAML\",\"WebAppType\":\"Link\",\"IsTestApp\":true}"
 ```
 
 ## Troubleshooting
