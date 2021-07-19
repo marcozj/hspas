@@ -22,9 +22,9 @@ function prepare()
     OPENSSL_CNF="/etc/ssl/myssl.cnf" # Generated OpenSSL configuration file name for creating self-signed certificates. Used in generation of SSL certificates for Postgres and Redis
     ROOT_CERT_NAME="Self-Signed CA" # Common name of self-signed CA certificate
     POSTGRES_CERT_NAME="PostgreSQL Certificate" # Common name of PostgreSQL certificate
-    POSTGRES_CERT_ALTNAME="DNS:pgsql.demo.lab,DNS:*.demo.lab" # PostgreSQL certificate alternative name. Update it according to your domain and hostname
+    POSTGRES_CERT_ALTNAME="DNS:pgsql.demo.lab,DNS:*.demo.lab" # PostgreSQL certificate alternative name. Make sure DNS is resolved to VIP. Update it according to your domain and hostname
     REDIS_CERT_NAME="Redis Certificate" # Common name of Redis certificate
-    REDIS_CERT_ALTNAME="DNS:redis.demo.lab,DNS:*.demo.lab" # Redis certificate alternative name. Update it according to your domain and hostname
+    REDIS_CERT_ALTNAME="DNS:redis.demo.lab,DNS:*.demo.lab" # Redis certificate alternative name. Make sure DNS is resolved to VIP. Update it according to your domain and hostname
     CA_CERT_DIR="/etc/ssl/myca" # Directory where CA certificate and key are saved
     POSTGRES_CERT_DIR="/etc/ssl/pgsql" # Directory where PostgresQL certificate and key are saved
     REDIS_CERT_DIR="/etc/ssl/redis" # Directory where Redis certificate and key are saved
